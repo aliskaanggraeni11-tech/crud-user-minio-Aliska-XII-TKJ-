@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: crud-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+
+  minio:
+    image: minio/minio
+    container_name: crud-minio
+    command: server /data --console-address ":9001"
+    restart: always
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+  backend:
+    build: ./backend
+    container_name: crud-backend
+    restart: always
+    depends_on:
+      - postgres
+      - minio
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: postgres
+      DB_NAME: postgres
+      MINIO_ENDPOINT: minio
+      MINIO_ACCESS: minio
+      MINIO_SECRET: minio123
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build: ./frontend
+    container_name: crud-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
